@@ -33,6 +33,14 @@
   }
 }
 
+.button-flex-row {
+  display: flex;       /* Switches from Grid to Flexbox */
+  flex-direction: row; /* Ensures they stay in a row */
+  gap: 1rem;           /* Keeps your spacing */
+  margin-top: 1.5rem;
+  justify-content: center; /* Centers the buttons horizontally */
+}
+
 .card {
   padding: 2em;
 }
