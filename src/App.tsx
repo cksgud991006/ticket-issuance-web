@@ -52,7 +52,6 @@ function App() {
 
     // Fetch reserved seats on initial load
     getData<SeatInfo[]>("seats/reserved/{flightNumber}", { flightNumber: flightNumber }).then((response) => {
-      console.log("Reserved Seats:", response);
       setReservedSeats(response);
     });
 
