@@ -54,7 +54,7 @@ function App() {
     getData<SeatInfo[]>("seats/reserved/{flightNumber}", { flightNumber: flightNumber }).then((response) => {
       setReservedSeats(response);
     });
-
+ 
     setStep('SELECTION');
 
   };
