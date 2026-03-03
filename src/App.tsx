@@ -20,6 +20,8 @@ function App() {
   const [reservedSeats, setReservedSeats] = useState<SeatInfo[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<SeatInfo[]>([]);
 
+  const MAX_SELECTIONS = 5;
+
   useEffect(() => {
     // Generate a new GUID for each session
     const newGuid = crypto.randomUUID();
@@ -31,9 +33,9 @@ function App() {
 
       try {
         postData("queue", {
-        Id: guid,
-        RequestTime: new Date().toISOString(),
-        IdempotencyKey: guid
+          Id: guid,
+          RequestTime: new Date().toISOString(),
+          IdempotencyKey: guid
         });
 
         setStep('LOADING');
@@ -105,10 +107,11 @@ function App() {
       {step === 'LOADING' && <LoadingStep guid={guid} onComplete={handleLoadingComplete} onFailure={handleLoadingFailure} />}
 
       {step === 'SELECTION' && <SelectionStep seats={seats} reservedSeats={reservedSeats} selectedSeats={selectedSeats} 
-      onSeatToggle={(seat: SeatInfo) => setSelectedSeats(prev => prev.includes(seat) ? prev.filter(s => s !== seat) : [...prev, seat])}  
+      maxSelections={MAX_SELECTIONS}
+      onSeatToggle={(seat: SeatInfo) => setSelectedSeats(prev => prev.includes(seat) ? prev.filter(s => s !== seat) : prev.length < MAX_SELECTIONS ? [...prev, seat] : prev)}  
       onComplete={handleSelectionComplete} onCancel={() => setStep('START')} />}
 
-      {step === 'COMPLETE' && <CompleteStep />}
+      {step === 'COMPLETE' && <CompleteStep onReload={() => setStep('START')} />}
 
       {step === 'FAILURE' && <FailureStep onRetry={() => setStep('START')} />}
     </div>
