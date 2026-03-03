@@ -30,6 +30,7 @@ function LoadingStep({ guid, onComplete, onFailure }: LoadingStepProps) {
         <div>
           <h2>Processing...</h2>
           <p>Please wait while we verify your request.</p>
+          <p>Note: This process may take a few seconds ..</p>
         </div>
     );
 }

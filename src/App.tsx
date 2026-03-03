@@ -25,10 +25,10 @@ function App() {
     setGuid(newGuid);
   }, []);
 
-  const handleStartComplete = async (flightNumber: string) => {
+  const handleStartComplete = (flightNumber: string) => {
       setFlightNumber(flightNumber);
 
-      await postData("queue", {
+      postData("queue", {
         Id: guid,
         RequestTime: new Date().toISOString(),
         IdempotencyKey: guid
