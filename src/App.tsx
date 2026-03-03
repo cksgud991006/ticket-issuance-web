@@ -4,6 +4,7 @@ import SelectionStep from './components/Steps/SelectionStep';
 import CompleteStep from './components/Steps/CompleteStep';
 import LoadingStep from './components/Steps/LoadingStep';
 import StartStep from './components/Steps/StartStep';
+import FailureStep from './components/Steps/FailureStep';
 import { postData, getData } from './services/api';
 import { type StepType, START_STEP } from '../constants/page';
 import { FLIGHT_NUMBERS } from '../constants/flight';
@@ -28,34 +29,44 @@ function App() {
   const handleStartComplete = (flightNumber: string) => {
       setFlightNumber(flightNumber);
 
-      postData("queue", {
+      try {
+        postData("queue", {
         Id: guid,
         RequestTime: new Date().toISOString(),
         IdempotencyKey: guid
-      });
+        });
 
-      setStep('LOADING');
+        setStep('LOADING');
+      } catch (error) {
+        setStep('FAILURE');
+      }
+      
     };
 
   const handleLoadingComplete = async () => {
 
-    // Fetch all seats on initial load
-    getData<SeatInfo[]>("seats/total/{flightNumber}", { flightNumber: flightNumber }).then((response) => {
-      const sortedSeats = response.sort((a, b) => {
-        return a.seatNumber.localeCompare(b.seatNumber, undefined, { 
-          numeric: true,
-          sensitivity: 'base'
+    try {
+      
+      // Fetch all seats on initial load
+      getData<SeatInfo[]>("seats/total/{flightNumber}", { flightNumber: flightNumber }).then((response) => {
+        const sortedSeats = response.sort((a, b) => {
+          return a.seatNumber.localeCompare(b.seatNumber, undefined, { 
+            numeric: true,
+            sensitivity: 'base'
+          });
         });
+        setSeats(sortedSeats);
       });
-      setSeats(sortedSeats);
-    });
 
-    // Fetch reserved seats on initial load
-    getData<SeatInfo[]>("seats/reserved/{flightNumber}", { flightNumber: flightNumber }).then((response) => {
-      setReservedSeats(response);
-    });
- 
-    setStep('SELECTION');
+      // Fetch reserved seats on initial load
+      getData<SeatInfo[]>("seats/reserved/{flightNumber}", { flightNumber: flightNumber }).then((response) => {
+        setReservedSeats(response);
+      });
+  
+      setStep('SELECTION');
+    } catch (error) {
+      setStep('FAILURE');
+    }
 
   };
 
@@ -67,17 +78,21 @@ function App() {
 
   const handleSelectionComplete = async () => {
     
-    selectedSeats.forEach(async (seat) => {
-      await postData("seat", {
-        FlightNumber: flightNumber,
-        Date: new Date().toISOString(),
-        SeatClass: seat.seatClass,
-        SeatNumber: seat.seatNumber,
-        Id: guid
+    try {
+      selectedSeats.forEach(async (seat) => {
+        await postData("seat", {
+          FlightNumber: flightNumber,
+          Date: new Date().toISOString(),
+          SeatClass: seat.seatClass,
+          SeatNumber: seat.seatNumber,
+          Id: guid
+        });
       });
-    });
 
-    setStep('COMPLETE');
+      setStep('COMPLETE');
+    } catch (error) {
+      setStep('FAILURE');
+    }
 
     };
 
@@ -94,6 +109,8 @@ function App() {
       onComplete={handleSelectionComplete} onCancel={() => setStep('START')} />}
 
       {step === 'COMPLETE' && <CompleteStep />}
+
+      {step === 'FAILURE' && <FailureStep onRetry={() => setStep('START')} />}
     </div>
   );
 }
