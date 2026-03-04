@@ -28,6 +28,13 @@ function App() {
     setGuid(newGuid);
   }, []);
 
+  useEffect(() => {
+    if (step === 'START') {
+      setSelectedSeats([]);
+    }
+  }, [step]);
+
+
   const handleStartComplete = (flightNumber: string) => {
       setFlightNumber(flightNumber);
 
@@ -80,9 +87,8 @@ function App() {
 
   const handleSelectionComplete = async () => {
     
-    try {
-      selectedSeats.forEach(async (seat) => {
-        await postData("seat", {
+      const seatRequests = selectedSeats.map((seat) => {
+        return postData("seat", {
           FlightNumber: flightNumber,
           Date: new Date().toISOString(),
           SeatClass: seat.seatClass,
@@ -91,13 +97,12 @@ function App() {
         });
       });
 
-      setStep('COMPLETE');
-    } catch (error) {
-      setStep('FAILURE');
-    }
-
+      await Promise.all(seatRequests).then(() => {
+        setStep('COMPLETE');
+      }).catch(() => {
+        setStep('FAILURE');
+      });
     };
-
   // --- RENDERING LOGIC ---
 
   return (
